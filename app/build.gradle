@@ -8,10 +8,10 @@
 
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
-    id 'application'
     id 'java-library'
     id 'maven-publish'
     id 'signing'
+    id 'application'
 }
 
 group 'io.github.coralewh'
@@ -35,9 +35,15 @@ java {
     withSourcesJar()
 }
 
+task comps {
+    afterEvaluate {
+        println("Components: " + components*.name)
+    }
+}
+
 publishing {
     publications {
-        mavenjava(MavenPublication) {
+        mavenJava(MavenPublication) {
             groupId = 'io.github.coralewh'
             artifactId = 'whispir-java'
             version = '1.0'
@@ -57,9 +63,11 @@ publishing {
                 }
 
                 developers {
-                    id = 'coralewh'
-                    name = 'Carl Orale'
-                    email = 'coralewh@whispir.com'
+                    developer {
+                        id = 'corale'
+                        name = 'Carl Orale'
+                        email = 'coralewh@whispir.com'
+                    }
                 }
 
                 scm {
@@ -74,10 +82,24 @@ publishing {
     repositories {
         maven {
             name = 'OSSRH'
-            url = ''
+            url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials {
+                username = project.properties["ossrhUsername"]
+                password = project.properties["ossrhPassword"]
+            }
         }
     }
-} 
+}
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
 
 application {
     // Define the main class for the application.
